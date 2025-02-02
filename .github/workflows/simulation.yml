@@ -8,10 +8,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-simulation:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 2  # Cancel if stuck
-    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Run tests
+      run: go test -v -race ./...
+
+  run-simulation:
+    name: Run Simulation
+    needs: [test]  # Requires tests to pass first
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -23,7 +39,6 @@ jobs:
 
     - name: Run Multiverse Simulation
       run: |
-        # Install dependencies (if any) and run with timeout
         go run . &
         SIM_PID=$!
         sleep 30
