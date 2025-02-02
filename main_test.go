@@ -47,25 +47,36 @@ func TestCreateCosmicString(t *testing.T) {
 }
 
 func TestCosmicCouncilMeeting(t *testing.T) {
+	// Reset state
 	mu.Lock()
-	defer mu.Unlock()
+	multiverse = make(map[int]*Universe) // Clear previous state
+	mu.Unlock()
 
 	// Setup test universes
-	multiverse[1] = &Universe{Entropy: 0.9}  // Should be reset
-	multiverse[2] = &Universe{Entropy: 0.5}  // Should remain
-	multiverse[3] = &Universe{Entropy: 0.85} // Should be reset
+	mu.Lock()
+	multiverse[1] = &Universe{Entropy: 0.9}
+	multiverse[2] = &Universe{Entropy: 0.5}
+	multiverse[3] = &Universe{Entropy: 0.85}
+	mu.Unlock()
 
 	cosmicCouncilMeeting()
 
+	// Verify results
+	mu.Lock()
+	defer mu.Unlock()
+
 	if multiverse[1].Entropy != 0.1 {
-		t.Error("High entropy universe not reset")
+		t.Error("Universe 1 entropy not reset")
 	}
 	if multiverse[2].Entropy != 0.5 {
-		t.Error("Low entropy universe modified incorrectly")
+		t.Error("Universe 2 entropy changed unexpectedly")
 	}
 	if multiverse[3].Entropy != 0.1 {
-		t.Error("Second high entropy universe not reset")
+		t.Error("Universe 3 entropy not reset")
 	}
+
+	// Cleanup
+	multiverse = make(map[int]*Universe)
 }
 
 func TestQuantumFluctuation(t *testing.T) {
