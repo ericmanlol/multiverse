@@ -76,6 +76,8 @@ func (u *Universe) Run() {
 				fmt.Printf("🌀 Universe %d opened a WORMHOLE to Universe %d!\n", u.ID, target.ID)
 				u.State = "Entangled"
 				target.State = "Entangled"
+				// Create cosmic string between them
+				createCosmicString(u, target)
 			}
 			mu.Unlock()
 		}
@@ -89,6 +91,14 @@ func (bh *BlackHole) ConsumeUniverse(u *Universe) {
 	bh.UniversesConsumed = append(bh.UniversesConsumed, u.ID)
 	fmt.Printf("🕳️  Black Hole %d consumed Universe %d (Mass: %.2f)\n",
 		bh.ID, u.ID, bh.Mass)
+}
+
+// Cosmic Strings connect two universes
+func createCosmicString(u1, u2 *Universe) {
+	fmt.Printf("🌀 Cosmic String formed between Universe %d and Universe %d!\n", u1.ID, u2.ID)
+	// Swap entropy and states
+	u1.Entropy, u2.Entropy = u2.Entropy, u1.Entropy
+	u1.State, u2.State = u2.State, u1.State
 }
 
 func quantumFluctuation() {
