@@ -115,6 +115,19 @@ func quantumFluctuation() {
 	}
 }
 
+// Cosmic Council maintains order
+func cosmicCouncilMeeting() {
+	mu.Lock()
+	defer mu.Unlock()
+	fmt.Println("👑 The Cosmic Council is in session...")
+	for id, u := range multiverse {
+		if u.Entropy > 0.8 {
+			fmt.Printf("⚖️  Cosmic Council resets entropy for Universe %d\n", id)
+			u.Entropy = 0.1
+		}
+	}
+}
+
 func createUniverse(id int) {
 	universe := NewUniverse(id)
 	mu.Lock()
@@ -161,6 +174,14 @@ func main() {
 		for {
 			time.Sleep(time.Duration(rand.Intn(5000)+2000) * time.Millisecond)
 			quantumFluctuation()
+		}
+	}()
+
+	// Cosmic Council meetings
+	go func() {
+		for {
+			time.Sleep(time.Duration(rand.Intn(15000)+10000) * time.Millisecond)
+			cosmicCouncilMeeting()
 		}
 	}()
 
