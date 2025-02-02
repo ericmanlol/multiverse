@@ -49,6 +49,10 @@ func NewBlackHole(id int) *BlackHole {
 
 func (u *Universe) Run() {
 	for {
+		// Time dilation based on entropy by the way
+		timeMultiplier := 1.0 / (1.0 + u.Entropy)
+		time.Sleep(time.Duration(float64(rand.Intn(1000)+500)*timeMultiplier) * time.Millisecond)
+
 		u.State = states[rand.Intn(len(states))]
 		u.Entropy += rand.Float64()*0.1 - 0.05 // Randomly adjust entropy
 		if u.Entropy < 0 {
