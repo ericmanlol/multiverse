@@ -83,8 +83,22 @@ func (u *Universe) Run() {
 func (bh *BlackHole) ConsumeUniverse(u *Universe) {
 	bh.Mass += u.Entropy
 	bh.UniversesConsumed = append(bh.UniversesConsumed, u.ID)
-	fmt.Printf("🕳️ Black Hole %d consumed Universe %d (Mass: %.2f)\n",
+	fmt.Printf("🕳️  Black Hole %d consumed Universe %d (Mass: %.2f)\n",
 		bh.ID, u.ID, bh.Mass)
+}
+
+func quantumFluctuation() {
+	mu.Lock()
+	defer mu.Unlock()
+	if len(multiverse) == 0 {
+		return
+	}
+	id := rand.Intn(1000)
+	if _, exists := multiverse[id]; exists {
+		fmt.Printf("⚛️  Quantum Fluctuation split Universe %d into two!\n", id)
+		createUniverse(rand.Intn(1000))
+		createUniverse(rand.Intn(1000))
+	}
 }
 
 func createUniverse(id int) {
@@ -125,6 +139,14 @@ func main() {
 				fmt.Printf("✨ A NEW UNIVERSE %d has been BORN!\n", newID)
 				createUniverse(newID)
 			}
+		}
+	}()
+
+	// Add quantum fluctuations
+	go func() {
+		for {
+			time.Sleep(time.Duration(rand.Intn(5000)+2000) * time.Millisecond)
+			quantumFluctuation()
 		}
 	}()
 
