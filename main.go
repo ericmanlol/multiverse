@@ -54,7 +54,11 @@ func (u *Universe) Run() {
 		time.Sleep(time.Duration(float64(rand.Intn(1000)+500)*timeMultiplier) * time.Millisecond)
 
 		u.State = states[rand.Intn(len(states))]
-		u.Entropy += rand.Float64()*0.1 - 0.05 // Randomly adjust entropy
+
+		// Add time-based randomness to entropy calculation
+		randFloat := rand.Float64() * (1 + float64(time.Now().UnixNano()%1000)/1000)
+		u.Entropy += randFloat*0.1 - 0.05
+
 		if u.Entropy < 0 {
 			u.Entropy = 0
 		}
@@ -81,7 +85,12 @@ func (u *Universe) Run() {
 			}
 			mu.Unlock()
 		}
-		fmt.Printf("🌌 Universe %d is %s (Entropy: %.2f)\n", u.ID, u.State, u.Entropy)
+
+		// ANSI escape codes for colored output
+		colorCode := 31 + rand.Intn(6) // Random red(31) to cyan(36)
+		fmt.Printf("\033[%dm🌌 Universe %d is %s (Entropy: %.2f)\033[0m\n",
+			colorCode, u.ID, u.State, u.Entropy)
+
 		time.Sleep(time.Duration(rand.Intn(1000)+500) * time.Millisecond)
 	}
 }
