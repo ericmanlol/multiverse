@@ -49,8 +49,9 @@ func NewBlackHole(id int) *BlackHole {
 }
 
 func (u *Universe) Run() {
+	// Note: In testing mode, Run() is not started.
 	for {
-		// Time dilation based on entropy by the way
+		// Time dilation based on entropy
 		timeMultiplier := 1.0 / (1.0 + u.Entropy)
 		time.Sleep(time.Duration(float64(rand.Intn(1000)+500)*timeMultiplier) * time.Millisecond)
 
@@ -112,35 +113,35 @@ func createCosmicString(u1, u2 *Universe) {
 }
 
 func quantumFluctuation() {
-	fmt.Println("🔍 Entering quantumFluctuation()...") // Debugging statement
-
+	fmt.Println("🔍 Entering quantumFluctuation()...") // Debug
+	fmt.Println("🔒 Attempting to acquire lock in quantumFluctuation()...")
 	mu.Lock()
+	fmt.Println("🔓 Lock acquired in quantumFluctuation()!")
 	if len(multiverse) == 0 {
 		fmt.Println("⚠️ No universes to fluctuate.")
-		mu.Unlock() // 🔥 Make sure to release the lock!
+		mu.Unlock()
+		fmt.Println("🔓 Lock released in quantumFluctuation() (no universes).")
 		return
 	}
-
 	keys := make([]int, 0, len(multiverse))
 	for key := range multiverse {
 		keys = append(keys, key)
 	}
 	chosenKey := keys[rand.Intn(len(keys))]
 	fmt.Printf("⚛️  Quantum Fluctuation split Universe %d into two!\n", chosenKey)
-
-	mu.Unlock() // 🔥 Unlock before creating new universes!
-
+	mu.Unlock() // Unlock before creating new universes
+	fmt.Println("🔓 Lock released in quantumFluctuation()!")
 	// Create two new universes (which will lock separately)
 	createUniverse(rand.Intn(1000))
 	createUniverse(rand.Intn(1000))
-
-	fmt.Println("✅ quantumFluctuation() completed successfully.") // Debugging statement
+	fmt.Println("✅ quantumFluctuation() completed successfully.") // Debug
 }
 
 // Cosmic Council maintains order
 func cosmicCouncilMeeting() {
+	fmt.Println("🔒 Attempting to acquire lock in cosmicCouncilMeeting()...")
 	mu.Lock()
-	defer mu.Unlock()
+	fmt.Println("🔓 Lock acquired in cosmicCouncilMeeting()!")
 	fmt.Println("👑 The Cosmic Council is in session...")
 	for id, u := range multiverse {
 		if u.Entropy > 0.8 {
@@ -148,21 +149,19 @@ func cosmicCouncilMeeting() {
 			u.Entropy = 0.1
 		}
 	}
+	mu.Unlock()
+	fmt.Println("🔓 Lock released in cosmicCouncilMeeting()!")
 }
 
 func createUniverse(id int) {
-	fmt.Printf("🔍 Creating Universe %d...\n", id) // Debugging
-
+	fmt.Printf("🔍 Creating Universe %d...\n", id) // Debug
 	universe := NewUniverse(id)
-
 	fmt.Printf("🔍 Attempting to lock before adding Universe %d...\n", id)
 	mu.Lock()
-
 	fmt.Printf("🔓 Successfully locked! Adding Universe %d to multiverse...\n", id)
 	multiverse[id] = universe
 	mu.Unlock()
 	fmt.Printf("🔓 Universe %d added and lock released.\n", id)
-
 	if !testingMode {
 		wg.Add(1)
 		go func() {
@@ -172,8 +171,7 @@ func createUniverse(id int) {
 	} else {
 		fmt.Printf("🧪 Test Mode: Universe %d created but NOT started.\n", id)
 	}
-
-	fmt.Printf("✅ Universe %d created successfully.\n", id) // Debugging
+	fmt.Printf("✅ Universe %d created successfully.\n", id) // Debug
 }
 
 func bigBang() {
@@ -181,6 +179,45 @@ func bigBang() {
 	for i := 0; i < rand.Intn(10)+5; i++ {
 		createUniverse(rand.Intn(1000))
 	}
+}
+
+func simulateOneIterationOfRun(u *Universe) {
+	fmt.Printf("🔍 Entering simulateOneIterationOfRun for Universe %d (Entropy: %.2f)...\n", u.ID, u.Entropy)
+	// Simulate only one step of Run() without an infinite loop.
+	timeMultiplier := 1.0 / (1.0 + u.Entropy)
+	sleepTime := time.Duration(float64(rand.Intn(1000)+500)*timeMultiplier) * time.Millisecond
+	fmt.Printf("⏳ Sleeping for %.2f milliseconds before processing Universe %d...\n", float64(sleepTime.Milliseconds()), u.ID)
+	time.Sleep(sleepTime)
+	fmt.Printf("⏩ Waking up, processing Universe %d...\n", u.ID)
+	// Check if the mutex is already locked
+	fmt.Println("🕵️ Checking if mutex is locked before acquiring lock in simulateOneIterationOfRun()...")
+	if !mu.TryLock() {
+		fmt.Println("❌ DEADLOCK DETECTED! Mutex is already locked before Universe 999 could proceed!")
+		fmt.Println("🛑 Exiting simulateOneIterationOfRun early due to deadlock.")
+		return
+	} else {
+		fmt.Println("✅ Mutex was free, proceeding in simulateOneIterationOfRun()...")
+	}
+	fmt.Printf("🔍 Lock acquired before checking entropy in simulateOneIterationOfRun (Universe %d, Entropy: %.2f)...\n", u.ID, u.Entropy)
+	if u.Entropy > 1 {
+		fmt.Printf("💥 Universe %d has reached MAX ENTROPY and COLLAPSED!\n", u.ID)
+		// Generate a Black Hole ID
+		bhID := rand.Intn(1000)
+		fmt.Printf("🕳️  Creating Black Hole %d from collapsed Universe %d...\n", bhID, u.ID)
+		blackHoles[bhID] = NewBlackHole(bhID)
+		blackHoles[bhID].ConsumeUniverse(u)
+		if _, exists := multiverse[u.ID]; exists {
+			fmt.Printf("⚠️ Universe %d still exists in multiverse before deletion! Deleting now...\n", u.ID)
+		}
+		delete(multiverse, u.ID)
+		if _, exists := multiverse[u.ID]; exists {
+			fmt.Printf("❌ Universe %d was NOT deleted from multiverse!\n", u.ID)
+		} else {
+			fmt.Printf("✅ Universe %d successfully deleted from multiverse.\n", u.ID)
+		}
+	}
+	fmt.Printf("🔓 Unlocking after checking entropy in simulateOneIterationOfRun (Universe %d)...\n", u.ID)
+	mu.Unlock()
 }
 
 func main() {
@@ -252,7 +289,7 @@ func main() {
 		}
 	}()
 
-	// Wait forever in the chaos
+	// Wait forever in the chaos (unless in testing mode)
 	if !testingMode {
 		wg.Wait()
 	}
