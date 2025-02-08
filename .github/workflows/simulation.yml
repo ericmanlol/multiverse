@@ -23,23 +23,26 @@ jobs:
     - name: Run tests
       run: go test -v -race ./...
 
-  run-simulation:
-    name: Run Simulation
-    needs: [test]  # Requires tests to pass first
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+# Uncomment the following block to run the simulation
+# Currently, github actions hangs when running the simulation and doesn't respect the kill signal
+# So I won't run it in the CI pipeline for now
+  # run-simulation:
+  #   name: Run Simulation
+  #   needs: [test]  # Requires tests to pass first
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 2
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
+  #   - name: Set up Go
+  #     uses: actions/setup-go@v4
+  #     with:
+  #       go-version: '1.21'
 
-    - name: Run Multiverse Simulation
-      run: |
-        go run . &
-        SIM_PID=$!
-        sleep 30
-        kill -9 $SIM_PID
+  #   - name: Run Multiverse Simulation
+  #     run: |
+  #       go run . &
+  #       SIM_PID=$!
+  #       sleep 30
+  #       kill -9 $SIM_PID
