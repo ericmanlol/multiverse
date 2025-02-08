@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -80,21 +81,39 @@ func TestCosmicCouncilMeeting(t *testing.T) {
 }
 
 func TestQuantumFluctuation(t *testing.T) {
-	mu.Lock()
-	defer mu.Unlock()
+	fmt.Println("🔍 Starting TestQuantumFluctuation") // Debugging
 
-	// Reset multiverse state
+	testingMode = true
+	defer func() { testingMode = false }() // Reset after test
+
+	// Reset state
+	mu.Lock()
 	multiverse = make(map[int]*Universe)
-	multiverse[777] = NewUniverse(777) // Seed universe
+	mu.Unlock()
+
+	// Seed universe
+	mu.Lock()
+	multiverse[777] = NewUniverse(777)
+	mu.Unlock()
 
 	originalCount := len(multiverse)
 	rand.Seed(42) // Fixed seed for deterministic test
 
+	// Call quantumFluctuation()
+	fmt.Println("⚡ Calling quantumFluctuation()...")
 	quantumFluctuation()
+	fmt.Println("✅ quantumFluctuation() executed.") // Debugging
 
-	if len(multiverse) != originalCount+2 {
-		t.Errorf("Expected %d universes, got %d", originalCount+2, len(multiverse))
+	// Lock again to safely read the state
+	mu.Lock()
+	finalCount := len(multiverse)
+	mu.Unlock()
+
+	if finalCount != originalCount+2 {
+		t.Errorf("Expected %d universes, got %d", originalCount+2, finalCount)
 	}
+
+	fmt.Println("✅ TestQuantumFluctuation PASSED")
 }
 
 func TestBlackHoleConsumption(t *testing.T) {

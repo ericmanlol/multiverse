@@ -29,6 +29,7 @@ var multiverse = make(map[int]*Universe)
 var wg sync.WaitGroup
 var mu sync.Mutex
 var blackHoles = make(map[int]*BlackHole)
+var testingMode bool // Global flag to indicate test mode
 
 func NewUniverse(id int) *Universe {
 	return &Universe{
@@ -111,17 +112,29 @@ func createCosmicString(u1, u2 *Universe) {
 }
 
 func quantumFluctuation() {
+	fmt.Println("🔍 Entering quantumFluctuation()...") // Debugging statement
+
 	mu.Lock()
-	defer mu.Unlock()
 	if len(multiverse) == 0 {
+		fmt.Println("⚠️ No universes to fluctuate.")
+		mu.Unlock() // 🔥 Make sure to release the lock!
 		return
 	}
-	id := rand.Intn(1000)
-	if _, exists := multiverse[id]; exists {
-		fmt.Printf("⚛️  Quantum Fluctuation split Universe %d into two!\n", id)
-		createUniverse(rand.Intn(1000))
-		createUniverse(rand.Intn(1000))
+
+	keys := make([]int, 0, len(multiverse))
+	for key := range multiverse {
+		keys = append(keys, key)
 	}
+	chosenKey := keys[rand.Intn(len(keys))]
+	fmt.Printf("⚛️  Quantum Fluctuation split Universe %d into two!\n", chosenKey)
+
+	mu.Unlock() // 🔥 Unlock before creating new universes!
+
+	// Create two new universes (which will lock separately)
+	createUniverse(rand.Intn(1000))
+	createUniverse(rand.Intn(1000))
+
+	fmt.Println("✅ quantumFluctuation() completed successfully.") // Debugging statement
 }
 
 // Cosmic Council maintains order
@@ -138,15 +151,29 @@ func cosmicCouncilMeeting() {
 }
 
 func createUniverse(id int) {
+	fmt.Printf("🔍 Creating Universe %d...\n", id) // Debugging
+
 	universe := NewUniverse(id)
+
+	fmt.Printf("🔍 Attempting to lock before adding Universe %d...\n", id)
 	mu.Lock()
+
+	fmt.Printf("🔓 Successfully locked! Adding Universe %d to multiverse...\n", id)
 	multiverse[id] = universe
 	mu.Unlock()
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		universe.Run()
-	}()
+	fmt.Printf("🔓 Universe %d added and lock released.\n", id)
+
+	if !testingMode {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			universe.Run()
+		}()
+	} else {
+		fmt.Printf("🧪 Test Mode: Universe %d created but NOT started.\n", id)
+	}
+
+	fmt.Printf("✅ Universe %d created successfully.\n", id) // Debugging
 }
 
 func bigBang() {
@@ -226,5 +253,7 @@ func main() {
 	}()
 
 	// Wait forever in the chaos
-	wg.Wait()
+	if !testingMode {
+		wg.Wait()
+	}
 }
